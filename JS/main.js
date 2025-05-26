@@ -1,20 +1,27 @@
-// THE MAIN API
-// PUT THE /(WHAT YOU WANT)
 const url = "https://tarmeezacademy.com/api/v1";
+
+let currentpage = 1;
+let lastpage = 1;
 getposts();
-// GET METHOD BY AXIOS LIBARY
+let posts = document.getElementById("posts");
+
 function getposts() {
-  axios.get(`${url}/posts`).then((res) => {
+  axios.get(`${url}/posts?page=${currentpage}`).then((res) => {
     let posts = res.data.data;
+    lastpage = res.data.last_page;
+    if (currentpage === 1) {
+      document.querySelector("#posts").innerHTML = "";
+    }
     for (let post of posts) {
       //  GET TAGS AND ADD TO THE BODY
       let tags = post.tags.map((tag) => {
         return `<span class="badge bg-primary ">${tag}</span>`;
       });
       tags = tags.join("");
-      // FILL THE CARD IN THE EMBTY DIV, FISRT WRITHE IN THE ACUAL AND THE COPY THE CODE HERE
-      let card = `
-          <div class="card col-9 p-2 shadow mb-5">
+      post = `
+          <div class="card col-9 p-2 shadow mb-5 " 
+          onclick="handlePostClick(${post.id})"
+          " style="cursor: pointer;">
         <div class="card-header d-flex flex-row">
           <img
             src="${post.author.profile_image}"
@@ -57,13 +64,119 @@ function getposts() {
         </div>
     </div>    
         `;
-      // ADD BY + TO NOT DELETE EVERY THING FROM THE DOM IN CARD SECTION
-      document.querySelector("#posts").innerHTML += card;
+      document.querySelector(".post-card").innerHTML += post;
     }
   });
 }
 
-// LOGIN
+function handlePostClick(post) {
+  let token = localStorage.getItem("token");
+  let user = localStorage.getItem("user");
+  if (token && user) {
+    axios.get(`${url}/posts/${post}`).then((res) => {
+      const postData = res.data.data;
+      console.log(postData.id);
+      let modalBody = document.querySelector("#post-card");
+      const lBody = document.querySelector(".ToOpcity");
+      modalBody.classList.add("card");
+      // Prevent scrolling when the card is displayed
+      document.body.style.overflow = "hidden";
+      lBody.style.opacity = "0.1";
+
+      function handleOutsideClick(event) {
+        if (!modalBody.contains(event.target)) {
+          modalBody.classList.remove("card");
+          modalBody.innerHTML = "";
+          lBody.style.opacity = "1";
+          document.body.style.overflow = "";
+          document.removeEventListener("mousedown", handleOutsideClick);
+        }
+      }
+      setTimeout(() => {
+        document.addEventListener("mousedown", handleOutsideClick);
+      }, 0);
+      // Add image if it exists
+      function addImage() {
+        if (postData.image.length === undefined) {
+          return "";
+        } else {
+          return `<img src="${postData.image}" class="card-img-top" alt="Post Image" style="height: 300px; object-fit: cover;">`;
+        }
+      }
+      // GET COMMENTS
+
+      const post = res.data.data;
+      const comments = post.comments;
+      const author = post.author.username;
+      modalBody.innerHTML = `
+  <div  "class= card" style="max-height: 80vh; overflow-y: auto;">
+  ${addImage()}
+  <div class="card-body">
+  <h5 class="card-title">${postData.title}</h5>
+  <p class="card-text">${postData.body}</p> 
+  <p class="card-text"><small class="text-muted">Posted by ${
+    postData.author.name
+  } on ${new Date(postData.created_at).toLocaleDateString()}</small></p>'
+    </div>
+    <div class="card-footer">
+    <h6>Comments (${postData.comments_count})</h6>
+    <div id="commentsList"></div>
+    <textarea id="commentInput" class="form-control mt-2" placeholder="Add a comment..."></textarea>
+    <button class="btn btn-primary mt-2" onclick="Comment(${postData.id})">
+    Post Comment
+    </button> 
+      </div>
+      <div class= "post-comments">
+      <h6 class="p-3">Comments</h6>
+      <div id="commentslist" >
+      ${comments.map((comment) => {
+        return `
+     <p class="pl-3"><strong>Username:</strong> ${author}</p>
+          <p class="pl-3">${comment.body}</p>
+    `;
+      })}
+      </div>
+      </div>
+      </div>`;
+
+      // ADD COMMENT
+    });
+  } else {
+    alertUser("you must login OR reigistr", "danger");
+  }
+}
+
+function Comment(ID) {
+  console.log("Comment function called");
+  const token = localStorage.getItem("token");
+  const postId = ID;
+  const commentInput = document.getElementById("commentInput");
+  const commentText = commentInput.value.trim();
+  if (!commentText) {
+    console.log("Comment is empty");
+    alertUser("the commetnt is empty", "danger");
+    return;
+  }
+  axios
+    .post(
+      `${url}/posts/${postId}/comments`,
+      { body: commentText },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
+    .then((res) => {
+      commentInput.value = "";
+      alertUser("Comment added successfully", "success");
+      handlePostClick(post);
+    })
+    .catch((err) => {
+      let messageError = err.response;
+      alertUser(messageError, "danger");
+    });
+}
 function login() {
   let username = document.querySelector("#recipient-name").value;
   let password = document.querySelector("#message-text").value;
@@ -97,56 +210,66 @@ function login() {
 }
 
 const loginbtn = document.getElementById("model-login-btn");
-// ADD EVENT WHEN YOU CLICK
 loginbtn.addEventListener("click", login);
-// ADD EVENT WHEN YOU CLICK
 
-// REGISTER
 function Register() {
   // GET DATA FROM MAIN INPUT
   let username = document.querySelector("#username").value;
   let password = document.querySelector("#Password").value;
   let email = document.querySelector("#email").value;
   let name = document.querySelector("#name").value;
-  let image = document.querySelector("#image").value;
+  let image = document.querySelector("#image").files[0];
+
   let formdata = new FormData();
   formdata.append("username", username);
   formdata.append("password", password);
   formdata.append("email", email);
   formdata.append("image", image);
   formdata.append("name", name);
-  if (username && password) {
-    axios
-      .post(`${url}/register`, formdata, {
-        headers: {
-          Content_Type: "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((res) => {
-        console.log(res.data);
-        localStorage.setItem("token", res.data.token);
-        localStorage.setItem("user", JSON.stringify(res.data.user));
-        const modalEl = document.querySelector("#Register");
-        const modalInstance = bootstrap.Modal.getInstance(modalEl);
-        modalInstance.hide();
-        alertUser("register success", "success");
-        showUI();
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+
+  axios
+    .post(`${url}/register`, formdata, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    })
+    .then((res) => {
+      console.log("ss");
+      console.log(res.data);
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+      const modalEl = document.querySelector("#Registermodel");
+      const modalInstance = bootstrap.Modal.getInstance(modalEl);
+      modalInstance.hide();
+      alertUser("register success", "success");
+      showUI();
+    })
+    .catch((err) => {
+      let messageError = err.response.data.message;
+      alertUser(messageError, "danger");
+    });
+  if (error.response) {
+    // Server responded with error status
+    console.error("Status:", error.response.status);
+    console.error("Error data:", error.response.data);
+    console.error("Headers:", error.response.headers);
+
+    // Show the actual error message from server
+    if (error.response.data && error.response.data.message) {
+      alertUser(error.response.data.message, "error");
+    } else {
+      alertUser("Registration failed. Please check your input.", "error");
+    }
+  } else if (error.request) {
+    console.error("No response received:", error.request);
   } else {
-    // CHECK IF THE USER ENTER THE USER NNME AND PASSWORD
-    alert("Please enter username and password");
+    console.error("Error setting up request:", error.message);
   }
 }
-const Registerbtn = document.getElementById("Register-model-btn");
-// ADD EVENT WHEN YOU CLICK
-Registerbtn.addEventListener("click", Register);
-// ADD EVENT WHEN YOU CLICK
 
-// SHAW ALARTE
+const Registerbtn = document.getElementById("Register-model-btn");
+Registerbtn.addEventListener("click", Register);
+
 function alertUser(message, type = "success") {
   const alertPlaceholder = document.getElementById("liveAlertPlaceholder");
   const appendAlert = (message, type) => {
@@ -166,7 +289,6 @@ function alertUser(message, type = "success") {
     alertPlaceholder.style.display = "none";
   }, 2000);
 }
-// SWITHCH THE FACE
 function showUI() {
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user"));
@@ -193,7 +315,6 @@ function showUI() {
     Register.style.display = "none";
   }
 }
-// ADD POST
 function addPost() {
   // GET THE TOKEN FROM THE LOCALSTORAGE
   const token = localStorage.getItem("token");
@@ -203,7 +324,7 @@ function addPost() {
   // CREATE FROM DATA
   let formdata = new FormData();
   formdata.append("body", bodypost);
-  formdata.append("title", title);
+  formdata.append("tittle", title);
   formdata.append("image", imagepost);
   // MUST TELL THE BACKEND YOU WANT TO SENT DATA AS A DATAFROM
   axios
@@ -230,11 +351,9 @@ function addPost() {
 }
 
 const addpost = document.getElementById("AddPost-model-btn");
-// ADD EVENT WHEN YOU CLICK
-addpost.addEventListener("click", addPost);
-// ADD EVENT WHEN YOU CLICK
 
-// LOGOUT
+addpost.addEventListener("click", addPost);
+
 function logout() {
   localStorage.removeItem("token");
   localStorage.removeItem("user");
@@ -285,3 +404,12 @@ function logout() {
 //       });
 //   }
 // }
+window.addEventListener("scroll", handleInfiniteScroll);
+function handleInfiniteScroll() {
+  const endOfPage =
+    window.innerHeight + window.pageYOffset >= document.body.offsetHeight;
+  if (endOfPage && currentpage < lastpage) {
+    currentpage++;
+    getposts();
+  }
+}
