@@ -3,20 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- BOOTSTARP IN PROJECT -->
     <link
       rel="stylesheet"
       href="node_modules/bootstrap/dist/css/bootstrap.min.css"
     />
     <script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
-    <!-- BOOTSTARP IN PROJECT  -->
-    <!--======================================-->
-    <!--======================================-->
+
     <!-- AXIOS -->
     <script src="node_modules/axios/dist/axios.min.js"></script>
-    <!-- AXIOS -->
-    <!--======================================-->
-    <!--======================================-->
+
     <style>
       body {
         background-color: #f0ecff;
@@ -24,7 +19,6 @@
     </style>
     <title>Social-media</title>
   </head>
-  <!-- ==================================== -->
   <body>
     <!-- WHEN CLICK AT THE POST -->
     <div
@@ -44,18 +38,15 @@
         transition: all 0.3s ease-in-out;
       "
     ></div>
+
     <!-- EMPTY DIV TO SHOW ALART DYNAMIC WAY BY JS -->
     <div
-      id="liveAlertPlaceholder"
       class="fade show"
+      id="liveAlertPlaceholder"
       style="position: fixed; bottom: 0; width: 50%; right: 20px; z-index: 9999"
     ></div>
-    <!-- ====================================== -->
-    <!-- WHEN CLICK AT THE POST -->
-    <div class="ToOpcity">
-      
-      <!-- ====================================== -->
 
+    <div class="ToOpcity">
       <button
         type="button"
         id="add-post"
@@ -85,9 +76,7 @@
           />
         </svg>
       </button>
-
-      <!-- ====================================== -->
-      <!-- MODELS -->
+       
       <!-- MODEL FOR LOGIN -->
       <div
         class="modal fade"
@@ -152,6 +141,7 @@
           </div>
         </div>
       </div>
+
       <!-- MODEL FOR REGISTAR -->
       <div
         class="modal fade"
@@ -222,6 +212,7 @@
           </div>
         </div>
       </div>
+
       <!-- MODEL FOR ADD POST -->
       <div
         class="modal fade"
@@ -280,7 +271,6 @@
           </div>
         </div>
       </div>
-      <!-- MODELS -->
 
       <!-- NAVBAR -->
       <div class="container Regular">
@@ -361,8 +351,7 @@
           </nav>
         </div>
       </div>
-      <!-- NAVBAR -->
- 
+
       <!--POSTS  -->
       <div
         class="container mt-5 mb-5 d-flex flex-column justify-content-center align-items-center"
@@ -373,11 +362,10 @@
         ></div>
         <!-- POST CARD -->
         <div class="post-card" style="width: 100%; display: contents"></div>
-
-        <!-- POST CARD -->
       </div>
-      <!-- POSTS -->
     </div>
   </body>
+  
   <script src="JS/main.js"></script>
+ 
 </html>
